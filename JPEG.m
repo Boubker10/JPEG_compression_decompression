@@ -1,5 +1,5 @@
 
-image = imread('incredible0.png');
+image = imread('chadli.jpg');
 
 
 fullJPEGProcess(image, 'high');   % Pour une haute qualité
@@ -17,26 +17,40 @@ function fullJPEGProcess(img, quality)
     end
     img = double(img);
 
-    figure, imshow(uint8(img)), title('Image Originale');
-
-    Q = getQuantizationTable(quality); % Obtenir la table de quantification avec qualité
+    % Calcul de la table de quantification et compression/décompression
+    Q = getQuantizationTable(quality);
     [compressedImg, decompressedImg] = compressDecompress(img, Q);
 
-    figure, imshow(uint8(decompressedImg + 128)), title(['Image Après Compression et Décompression (', quality, ' qualité)']);
+    decompressedImageToShow = uint8(decompressedImg + 128);
+
+    % Calcul de PSNR et SSIM
+    psnrValue = calculatePSNR(uint8(img), decompressedImageToShow);
+    ssimValue = calculateSSIM(uint8(img), decompressedImageToShow);
+
+    % Estimation de la taille de l'image compressée
+    nonZeroCoeffs = nnz(compressedImg);
+    estimatedCompressedSize = nonZeroCoeffs * 8;
+    originalSize = numel(img) * 8;
+    reductionPercentage = 100 * (1 - estimatedCompressedSize / originalSize);
+
+    % Préparation des textes à afficher
+    textStringPSNR = sprintf('PSNR: %f dB', psnrValue);
+    textStringSSIM = sprintf('SSIM: %f', ssimValue);
+    textStringSize = sprintf('Original: %d bits, Compressed: %d bits', originalSize, estimatedCompressedSize);
+    textStringRe = sprintf('Reduction: %f%%', reductionPercentage);
+
+    % Affichage des images et informations dans une seule fenêtre
+    figure;
+    subplot(1, 2, 1), imshow(uint8(img)), title('Image Originale');
+    subplot(1, 2, 2), imshow(decompressedImageToShow), title(['Image Après (', quality, ' qualité)']);
     
-
-    psnrValue = calculatePSNR(uint8(img), uint8(decompressedImg + 128));
-    fprintf('PSNR de l''image compressée (%s qualité): %f dB\n', quality, psnrValue);
-
-    nonZeroCoeffs = nnz(compressedImg); % Nombre de coefficients non nuls dans l'image compressée
-    estimatedCompressedSize = nonZeroCoeffs * 8; % Estimation de la taille en bits (8 bits par coefficient non nul)
-    originalSize = numel(img) * 8; % Taille originale en bits (8 bits par pixel)
-
-    fprintf('Taille originale de l''image: %d bits\n', originalSize);
-    fprintf('Taille estimée de l''image compressée: %d bits\n', estimatedCompressedSize);
-    fprintf('Réduction de taille: %f%%\n', 100 * (1-estimatedCompressedSize / originalSize));
+    % Utilisation d'annotation pour afficher les informations textuelles
+    dim = [.2 .1 .3 .3];
+    str = {textStringPSNR, textStringSSIM, textStringSize, textStringRe};
+    annotation('textbox', dim, 'String', str, 'FitBoxToText', 'on', 'BackgroundColor', 'white');
 
 end
+
 
 function [compressedImg, decompressedImg] = compressDecompress(img, Q)
     imgCentered = img - 128;
@@ -65,13 +79,13 @@ function Q = getQuantizationTable(quality)
     % Ajuste les coefficients pour un contraste plus marqué en PSNR
     switch quality
         case 'high'
-            scaleFactor = 0.9; % Pour une compression minimale et une qualité maximale
+            scaleFactor = 0.4; % Pour une compression minimale et une qualité maximale
         case 'medium'
-            scaleFactor = 6.5; % Un équilibre entre qualité et compression
+            scaleFactor = 7.5; % Un équilibre entre qualité et compression
         case 'low'
-            scaleFactor = 15; % Maximise la compression pour minimiser la taille du fichier
+            scaleFactor = 20; % Maximise la compression pour minimiser la taille du fichier
         otherwise
-            scaleFactor = 3.5; % Par défaut à la qualité moyenne si l'option n'est pas reconnue
+            scaleFactor = 1.5; % Par défaut à la qualité moyenne si l'option n'est pas reconnue
     end
     Q = Q_high * scaleFactor;
 end
@@ -122,7 +136,42 @@ function psnrValue = calculatePSNR(original, compressed)
         psnrValue = 100;
     else
         maxPixel = 255.0;
-        psnrValue = 20 * log10(maxPixel / sqrt(mse));
+        psnrValue = 10* log10(maxPixel / sqrt(mse));
     end
 end
+
+function window = createGaussianWindow(size, sigma)
+    [x, y] = meshgrid(-floor(size/2):floor(size/2), -floor(size/2):floor(size/2));
+    window = exp(-(x.^2 + y.^2) / (2 * sigma^2));
+    window = window / sum(window(:));
+end
+
+function ssimValue = calculateSSIM(img1, img2)
+    K = [0.01, 0.03];
+    L = 255;
+    size = 11;
+    sigma = 1.5; 
+    window = createGaussianWindow(size, sigma); 
+    C1 = (K(1)*L)^2;
+    C2 = (K(2)*L)^2;
+    img1 = double(img1);
+    img2 = double(img2);
+    
+    mu1 = filter2(window, img1, 'valid');
+    mu2 = filter2(window, img2, 'valid');
+    mu1_sq = mu1.*mu1;
+    mu2_sq = mu2.*mu2;
+    mu1_mu2 = mu1.*mu2;
+    
+    sigma1_sq = filter2(window, img1.*img1, 'valid') - mu1_sq;
+    sigma2_sq = filter2(window, img2.*img2, 'valid') - mu2_sq;
+    sigma12 = filter2(window, img1.*img2, 'valid') - mu1_mu2;
+    
+    ssim_map = ((2*mu1_mu2 + C1).*(2*sigma12 + C2)) ./ ((mu1_sq + mu2_sq + C1).*(sigma1_sq + sigma2_sq + C2));
+    ssimValue = mean(ssim_map(:));
+end
+
+
+
+
 
