@@ -1,5 +1,5 @@
 
-image = imread('chadli.jpg');
+image = imread('chadli.jpg'); %change path here 
 
 
 fullJPEGProcess(image, 'high');   % Pour une haute qualité
