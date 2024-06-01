@@ -54,7 +54,6 @@ function fullJPEGProcess(img, quality)
     annotation('textbox', dim, 'String', str, 'FitBoxToText', 'on', 'BackgroundColor', 'white');
 end
 
-
 function [compressedImg, decompressedImg] = compressDecompress(img, Q)
     imgCentered = img - 128;
     [rows, cols] = size(img);
@@ -92,7 +91,6 @@ function Q = getQuantizationTable(quality)
     end
     Q = Q_high * scaleFactor;
 end
-
 
 function dctBlock = dct2_custom(block)
     N = 8;
@@ -132,14 +130,13 @@ function block = idct2_custom(dctBlock)
     end
 end
 
-
 function psnrValue = calculatePSNR(original, compressed)
     mse = mean((original(:) - compressed(:)) .^ 2);
     if mse == 0
         psnrValue = 100;
     else
         maxPixel = 255.0;
-        psnrValue = 10* log10(maxPixel / sqrt(mse));
+        psnrValue = 10 * log10((maxPixel^2) / mse);
     end
 end
 
@@ -155,25 +152,25 @@ function ssimValue = calculateSSIM(img1, img2)
     size = 11;
     sigma = 1.5; 
     window = createGaussianWindow(size, sigma); 
-    C1 = (K(1)*L)^2;
-    C2 = (K(2)*L)^2;
+    C1 = (K(1) * L)^2;
+    C2 = (K(2) * L)^2;
     img1 = double(img1);
     img2 = double(img2);
     
     mu1 = filter2(window, img1, 'valid');
     mu2 = filter2(window, img2, 'valid');
-    mu1_sq = mu1.*mu1;
-    mu2_sq = mu2.*mu2;
-    mu1_mu2 = mu1.*mu2;
+    mu1_sq = mu1 .* mu1;
+    mu2_sq = mu2 .* mu2;
+    mu1_mu2 = mu1 .* mu2;
     
-    sigma1_sq = filter2(window, img1.*img1, 'valid') - mu1_sq;
-    sigma2_sq = filter2(window, img2.*img2, 'valid') - mu2_sq;
-    sigma12 = filter2(window, img1.*img2, 'valid') - mu1_mu2;
+    sigma1_sq = filter2(window, img1 .* img1, 'valid') - mu1_sq;
+    sigma2_sq = filter2(window, img2 .* img2, 'valid') - mu2_sq;
+    sigma12 = filter2(window, img1 .* img2, 'valid') - mu1_mu2;
     
-    ssim_map = ((2*mu1_mu2 + C1).*(2*sigma12 + C2)) ./ ((mu1_sq + mu2_sq + C1).*(sigma1_sq + sigma2_sq + C2));
+    ssim_map = ((2 * mu1_mu2 + C1) .* (2 * sigma12 + C2)) ./ ((mu1_sq + mu2_sq + C1) .* (sigma1_sq + sigma2_sq + C2));
     ssimValue = mean(ssim_map(:));
 end
 
-
-% To run this function from the command line:
+% Pour exécuter cette fonction à partir de la ligne de commande :
 % matlab -batch "main('path/to/image.jpg', 'quality')"
+
