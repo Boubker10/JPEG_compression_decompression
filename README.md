@@ -33,4 +33,4 @@ This project demonstrates a JPEG-like image compression and decompression proces
 To compress and decompress an image, run the following command in MATLAB:
 
 ```matlab
-main('path/to/image.jpg', 'quality');
+jpeg_com_decom('path/to/image.jpg', 'quality');
