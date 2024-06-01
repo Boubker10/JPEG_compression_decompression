@@ -24,7 +24,7 @@ This project demonstrates a JPEG-like image compression and decompression proces
 
 1. Clone the repository:
     ```sh
-    git clone https://github.com/yourusername/jpeg-compression-matlab.git
+   git clone https://github.com/Boubker10/JPEG_compression_decompression/.git
     ```
 2. Open MATLAB and navigate to the cloned repository folder.
 
