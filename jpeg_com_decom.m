@@ -15,7 +15,7 @@ function main(varargin)
     decompressedImageToShow = fullJPEGProcess(img, quality);
 
     % Save the decompressed image
-    saveImage(decompressedImageToShow, 'decompressed_image.jpg');
+    saveImage(decompressedImageToShow, 'C:\Users\o\Downloads\decompressed_image.jpg'); % change path 
 end
 
 function decompressedImageToShow = fullJPEGProcess(img, quality)
