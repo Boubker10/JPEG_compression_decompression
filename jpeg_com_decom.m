@@ -12,10 +12,13 @@ function main(varargin)
     img = imread(imagePath);
 
     % Process image
-    fullJPEGProcess(img, quality);
+    decompressedImageToShow = fullJPEGProcess(img, quality);
+
+    % Save the decompressed image
+    saveImage(decompressedImageToShow, 'decompressed_image.jpg');
 end
 
-function fullJPEGProcess(img, quality)
+function decompressedImageToShow = fullJPEGProcess(img, quality)
     if size(img, 3) == 3
         img = rgb2gray(img);
     end
@@ -52,6 +55,10 @@ function fullJPEGProcess(img, quality)
     dim = [.2 .1 .3 .3];
     str = {textStringPSNR, textStringSSIM, textStringSize, textStringRe};
     annotation('textbox', dim, 'String', str, 'FitBoxToText', 'on', 'BackgroundColor', 'white');
+end
+
+function saveImage(image, outputPath)
+    imwrite(image, outputPath);
 end
 
 function [compressedImg, decompressedImg] = compressDecompress(img, Q)
@@ -173,4 +180,3 @@ end
 
 % Pour exécuter cette fonction à partir de la ligne de commande :
 % matlab -batch "main('path/to/image.jpg', 'quality')"
-
